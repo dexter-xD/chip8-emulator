@@ -1,0 +1,28 @@
+# CMake version requirement
+cmake_minimum_required(VERSION 3.10)
+
+# Project name and language
+project(Chip8Emulator LANGUAGES C)
+
+# Specify C standard
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Find SDL2 (using the built-in CMake module for SDL2)
+find_package(SDL2 REQUIRED)
+
+# Include directories for config and sdl
+include_directories(${SDL2_INCLUDE_DIRS} src/config src/sdl)
+
+# Source files for the project
+set(SOURCES
+    src/main.c
+    src/config/config.c
+    src/sdl/sdl_init.c
+)
+
+# Add executable
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Link the SDL2 library
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
