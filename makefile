@@ -7,3 +7,6 @@ build:
 
 run: build
 	./build/chip8
+
+clean: 
+	rm -rf build
