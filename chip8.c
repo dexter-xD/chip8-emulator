@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// SDL container object
 typedef struct {
   SDL_Window *window;
   SDL_Renderer *renderer;
 } sdl_t;
 
+// Emulator config
 typedef struct {
   uint32_t window_width;
   uint32_t window_height;
@@ -16,6 +18,18 @@ typedef struct {
   uint32_t bg_color;     // background color RGBA888
   uint32_t scale_factor; // Amount to scale a CHIP* pixel by 20x
 } config_t;
+
+// Emulator states
+typedef enum {
+  QUIT,
+  RUNNING,
+  PAUSED,
+} emulator_state_t;
+
+// CHIP8 machine object
+typedef struct {
+  emulator_state_t state;
+} chip8_t;
 
 // Initialize SDL
 bool init_sdl(sdl_t *sdl, const config_t config) {
@@ -82,6 +96,39 @@ void clear_screen(const sdl_t sdl, const config_t config) {
 
 void update_screen(const sdl_t sdl) { SDL_RenderPresent(sdl.renderer); }
 
+void handle_input(chip8_t *chip8) {
+  SDL_Event event;
+
+  while (SDL_PollEvent(&event)) {
+    switch (event.type) {
+    case SDL_QUIT:
+      // exit window
+      chip8->state = QUIT;
+      return;
+    case SDL_KEYDOWN:
+      switch (event.key.keysym.sym) {
+      case SDLK_ESCAPE:
+        chip8->state = QUIT;
+        return;
+      default:
+        break;
+      }
+
+    case SDL_KEYUP:
+      break;
+
+    default:
+      break;
+    }
+  }
+}
+
+// Initialize CHIP8 machine
+bool init_chip8(chip8_t *chip8) {
+  chip8->state = RUNNING; // Default machine state to on/running
+  return true;
+}
+
 // main
 int main(int argc, char *argv[]) {
 
@@ -98,11 +145,19 @@ int main(int argc, char *argv[]) {
   if (!init_sdl(&sdl, config))
     exit(EXIT_FAILURE);
 
+  // initial CHIP8 machine
+  chip8_t chip8 = {0};
+  if (!init_chip8(&chip8))
+    exit(EXIT_FAILURE);
+
   // Initialize screen clear to background color
   clear_screen(sdl, config);
 
   // Main emulator loop
-  while (true) {
+  while (chip8.state != QUIT) {
+    // Handle inputs
+    handle_input(&chip8);
+
     // Delay for 60hz/60fps
     SDL_Delay(16);
 
