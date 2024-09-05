@@ -11,14 +11,15 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Find SDL2 (using the built-in CMake module for SDL2)
 find_package(SDL2 REQUIRED)
 
-# Include directories for config and sdl
-include_directories(${SDL2_INCLUDE_DIRS} src/config src/sdl)
+# Include directories for config, sdl, and chip8
+include_directories(${SDL2_INCLUDE_DIRS} src/config src/sdl src/chip8)
 
 # Source files for the project
 set(SOURCES
     src/main.c
     src/config/config.c
     src/sdl/sdl_init.c
+    src/chip8/chip8.c
 )
 
 # Add executable

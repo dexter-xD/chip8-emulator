@@ -1,20 +1,44 @@
 #include "config.h"
 #include "sdl_init.h"
-#include <stdlib.h>
+#include "chip8.h"
 
+// main
 int main(int argc, char *argv[]) {
-  // Initialize emu config
-  config_t config = {0};
-  if (!set_config_from_args(&config, argc, argv))
-    exit(EXIT_FAILURE);
+    (void)argc;
+    (void)argv;
 
-  // Init init_sdl
-  sdl_t sdl = {0};
-  if (!init_sdl(&sdl, config))
-    exit(EXIT_FAILURE);
+    // Initialize emu config
+    config_t config = {0};
+    if (!set_config_from_args(&config, argc, argv))
+        exit(EXIT_FAILURE);
 
-  // Final cleanup
-  final_cleanup(sdl);
+    // Init SDL
+    sdl_t sdl = {0};
+    if (!init_sdl(&sdl, config))
+        exit(EXIT_FAILURE);
 
-  exit(EXIT_SUCCESS);
+    // Initialize CHIP8 machine
+    chip8_t chip8 = {0};
+    if (!init_chip8(&chip8))
+        exit(EXIT_FAILURE);
+
+    // Initialize screen clear to background color
+    clear_screen(sdl, config);
+
+    // Main emulator loop
+    while (chip8.state != QUIT) {
+        // Handle inputs
+        handle_input(&chip8);
+
+        // Delay for 60hz/60fps
+        SDL_Delay(16);
+
+        // Update window with changes
+        update_screen(sdl);
+    }
+
+    // Final cleanup
+    final_cleanup(sdl);
+
+    exit(EXIT_SUCCESS);
 }
