@@ -28,6 +28,16 @@ typedef enum {
   PAUSED,
 } emulator_state_t;
 
+// CHIP8 Instructions format
+typedef struct {
+  uint16_t opcode;
+  uint16_t NNN; // 12 bit address/constant
+  uint8_t NN;   // 8 bit constant
+  uint8_t N;    // 4 bit constant
+  uint8_t X;    // 4 bit register identifier
+  uint8_t Y;    // 4 bit register identifier
+} instructions_t;
+
 // CHIP8 machine object
 typedef struct {
   emulator_state_t state;
@@ -40,7 +50,8 @@ typedef struct {
   uint8_t delay_timer;   // Decrements at 60hz when > 0
   uint8_t sound_timer;   // Decrements at 60hz and plays tone when > 0
   bool keypad[16];       // Hexadecimal keypad 0x0-0xF
-  const char *rom_name;
+  const char *rom_name;  // running rom
+  instructions_t inst;   // Currently executing instructions
 } chip8_t;
 
 // Initialize SDL
@@ -206,6 +217,32 @@ void clear_screen(const sdl_t sdl, const config_t config) {
   SDL_RenderClear(sdl.renderer);
 }
 
+// Emulate 1 CHIP8 Instruction
+void emulate_instruction(chip8_t *chip8) {
+  // Get next opcode from ram
+  chip8->inst.opcode = (chip8->ram[chip8->PC] << 8) | chip8->ram[chip8->PC + 1];
+  chip8->PC += 2; // Pre-increment program counter for next opcode
+
+  // Fill out instruction format
+  chip8->inst.NNN = chip8->inst.opcode & 0x0FFF;
+  chip8->inst.NN = chip8->inst.opcode & 0x0FF;
+  chip8->inst.N = chip8->inst.opcode & 0x0F;
+  chip8->inst.X = (chip8->inst.opcode >> 8) & 0x0F;
+  chip8->inst.Y = (chip8->inst.opcode >> 4) & 0x0F;
+
+  // Emulate opcode
+  switch ((chip8->inst.opcode >> 12) & 0x0F) {
+  case 0x00:
+    if (chip8->inst.NN == 0xE0) {
+      // 0x00E0: clear screen
+      memset(&chip8->display[0], false, sizeof chip8->display);
+    }
+
+  default:
+    break;
+  }
+}
+
 // main
 int main(int argc, char *argv[]) {
 
@@ -238,6 +275,14 @@ int main(int argc, char *argv[]) {
   while (chip8.state != QUIT) {
     // Handle inputs
     handle_input(&chip8);
+
+    if (chip8.state == PAUSED)
+      continue;
+
+    // Get_time();
+
+    // Emulate CHIP8 Instructions
+    emulate_instruction(&chip8);
 
     // Delay for 60hz/60fps
     SDL_Delay(16);
