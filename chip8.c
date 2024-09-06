@@ -77,7 +77,7 @@ bool set_config_from_args(config_t *config, const int argc, char **argv) {
       .window_width = 64,     // X resolution
       .window_height = 32,    // Y resolution
       .fg_color = 0xFFFFFFFF, // WHITE
-      .bg_color = 0xFFFF00FF, // YELLOW
+      .bg_color = 0x000000FF, // YELLOW
       .scale_factor = 20,     // Deault resolution will be 1280x640
   };
 
@@ -100,11 +100,24 @@ void handle_input(chip8_t *chip8) {
       // exit window
       chip8->state = QUIT;
       return;
+
     case SDL_KEYDOWN:
       switch (event.key.keysym.sym) {
+
       case SDLK_ESCAPE:
         chip8->state = QUIT;
         return;
+
+      case SDLK_SPACE:
+        // Space bar
+        if (chip8->state == RUNNING) {
+          chip8->state = PAUSED;
+        } else {
+          chip8->state = RUNNING;
+          puts("====PAUSED====");
+        }
+        return;
+
       default:
         break;
       }
@@ -196,8 +209,11 @@ void clear_screen(const sdl_t sdl, const config_t config) {
 // main
 int main(int argc, char *argv[]) {
 
-  (void)argc;
-  (void)argv;
+  // Default usage message for arguments
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <rom_name>\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
 
   // Initialize emu config
   config_t config = {0};
