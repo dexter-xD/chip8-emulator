@@ -96,4 +96,3 @@ Run the compiled executable, providing a ROM file as input:
 ---
 
 This guide should help you set up and run your CHIP-8 emulator on Linux. If you encounter any issues, consult the [SDL2](https://wiki.libsdl.org/) and [CMake](https://cmake.org/documentation/) documentation or open an issue in the repository.
-```
